@@ -1,0 +1,9 @@
+{
+  "device_ip": "",
+  "device_mac": "",
+  "server_ip": "",
+  "gateway": "",
+  "netmask": "255.255.255.0",
+  "dns_upstream": "",
+  "manual_speed": 56
+}

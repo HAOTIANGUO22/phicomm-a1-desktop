@@ -1,0 +1,39 @@
+# Local configuration, device identifiers, keys and connection history
+data/
+runtime/
+**/data/
+**/runtime/
+.env
+.env.*
+!.env.example
+settings.json
+last-state.json
+network-restore.json
+test-token
+*.log
+*.key
+*.pem
+*.crt
+*.pfx
+*.p12
+
+# Python environments and build output
+.venv/
+venv/
+.build-deps/
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.spec
+*.exe
+*.dll
+*.bak
+.pytest_cache/
+.coverage
+
+# Editor and system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

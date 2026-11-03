@@ -1,0 +1,18 @@
+# Third-party sources
+
+## EasyLink V2 sender
+
+- File: `tools/a1_easylink.py`.
+- Upstream: [phicomm-io/iotcloud-community-firmware](https://github.com/phicomm-io/iotcloud-community-firmware).
+- Source: [tools/a1_easylink.py](https://github.com/phicomm-io/iotcloud-community-firmware/blob/main/tools/a1_easylink.py).
+- License: GNU General Public License version 3. The full license is included in `LICENSE`.
+- The upstream sender is retained with its implementation comments. The Windows saved-profile wrapper and subnet discovery utility are separate project code.
+
+Copyright and other upstream notices remain applicable. This repository uses GPL-3.0 for the combined source distribution.
+
+## Protocol references
+
+- [BFG7274/phicomm-a1-local-purifier](https://github.com/BFG7274/phicomm-a1-local-purifier) documents the stock A1 control messages and modes. Its project is MIT licensed. The desktop interface, transport implementation and tests here were written separately; original device-specific envelope values are not distributed.
+- [MXCHIP/mico-os](https://github.com/MXCHIP/mico-os), especially its configuration-server implementation, was consulted for the original device's HTTP network-configuration field names. The SDK and firmware are not included.
+
+The references explain interoperability with stock firmware; no vendor firmware binaries are distributed.
