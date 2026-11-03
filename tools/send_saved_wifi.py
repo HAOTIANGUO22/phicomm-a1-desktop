@@ -10,7 +10,10 @@ import sys
 import uuid
 import xml.etree.ElementTree as ET
 
-from a1_easylink import data_packets, encode, send
+try:
+    from .a1_easylink import data_packets, encode, send
+except ImportError:
+    from a1_easylink import data_packets, encode, send
 
 
 class GUID(ctypes.Structure):
