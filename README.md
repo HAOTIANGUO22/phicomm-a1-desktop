@@ -4,7 +4,20 @@
 
 **原厂 App 无法使用、A1 还没联网时，可使用图形界面自动配网：`provision_app.py`／`A1Provisioner.exe`。** 自动读取无线网卡、选择家庭 Wi-Fi、发送 EasyLink 并验证设备，详见 [Windows 电脑免 App 配网完整步骤](docs/windows-wifi.md)。
 
-## 直接下载 Windows 配网软件
+## 直接下载 Windows 软件
+
+推荐：[下载配网＋控制台完整便携包 v0.2.0](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.2.0/A1DesktopSuite-v0.2.0-Windows-x64.zip)。解压后先运行配网工具，再运行控制台，无需安装 Python。适用于 Windows 10／11 x64。
+
+| 程序 | 直接下载 | 用途 |
+| --- | --- | --- |
+| 净化器控制台 | [A1Controller-Windows-x64.exe](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.2.0/A1Controller-Windows-x64.exe) | 配网并完成首次连接设置后，开关、调速和切换模式 |
+| 自动配网 | [A1Provisioner-Windows-x64.exe](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.2.0/A1Provisioner-Windows-x64.exe) | 使用电脑无线网卡给 A1 连接家庭 2.4 GHz Wi-Fi |
+
+控制台首次启动的设备 IP、MAC、电脑 IP 和路由器地址均需填写自己的信息。配网结果可提供设备 IP／MAC；保存后在 **连接设置 → 连接到这台电脑** 完成接入。详细步骤见 [控制台 EXE 使用指南](docs/windows-controller.md)，[发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v0.2.0)提供源码及 SHA-256 校验文件。
+
+公开控制台不携带构建者的网络配置、历史状态、协议头、日志或证书。运行后会在 EXE 旁创建本机 `data/`，分享软件时不要把这个目录一并发送。
+
+### 较早的独立配网发行版
 
 无需安装 Python：[下载 EXE](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.1.0/A1Provisioner-Windows-x64.exe)，或 [下载便携 ZIP（含说明和许可）](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.1.0/A1Provisioner-v0.1.0-Windows-x64.zip)。适用于 Windows 10／11 x64、有实体无线网卡的电脑。
 
@@ -121,7 +134,7 @@ py -3.13 provision_app.py
 
 运行数据放在源码旁的 `runtime/`，打包后则放在 EXE 旁的 `data/`。其中可能包含设备 IP、MAC、协议报文头、状态、日志及本地证书，已在 `.gitignore` 中排除。修改网络参数会保存到本机，重新打开软件后生效。
 
-提交源码时不要强制加入这些目录、截图、配置文件或个人构建出来的 EXE。源码仓库仅保留通用代码和空配置样例；经过隐私检查的通用配网 EXE 作为 GitHub Release 附件发布，不包含预置设备信息。
+提交源码时不要强制加入这些目录、截图、配置文件或个人构建出来的 EXE。源码仓库仅保留通用代码和空配置样例；经过隐私检查的通用配网和控制台 EXE 作为 GitHub Release 附件发布，不包含预置设备信息。
 
 ## 测试与打包
 
