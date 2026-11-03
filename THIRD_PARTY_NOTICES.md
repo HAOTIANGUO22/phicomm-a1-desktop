@@ -6,7 +6,7 @@
 - Upstream: [phicomm-io/iotcloud-community-firmware](https://github.com/phicomm-io/iotcloud-community-firmware).
 - Source: [tools/a1_easylink.py](https://github.com/phicomm-io/iotcloud-community-firmware/blob/main/tools/a1_easylink.py).
 - License: GNU General Public License version 3. The full license is included in `LICENSE`.
-- The upstream sender is retained with its implementation comments. The Windows saved-profile wrapper and subnet discovery utility are separate project code.
+- The upstream sender is retained with its implementation comments. Its help text and documentation references were updated to describe this project's Windows verification scope. The Windows saved-profile wrapper and subnet discovery utility are separate project code.
 
 Copyright and other upstream notices remain applicable. This repository uses GPL-3.0 for the combined source distribution.
 

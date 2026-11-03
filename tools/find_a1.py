@@ -38,6 +38,10 @@ def check(address):
             body = response.read(65536)
         config = json.loads(body)
         result["config_read"] = True
+        if isinstance(config, dict):
+            for key in ('N', 'PO', 'HD', 'FW', 'RF'):
+                if isinstance(config.get(key), (str, int)):
+                    result[key] = config[key]
         identity_fields(config, result)
     except Exception:
         pass
