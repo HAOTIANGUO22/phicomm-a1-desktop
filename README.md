@@ -4,6 +4,14 @@
 
 **原厂 App 无法使用、A1 还没联网时，可使用图形界面自动配网：`provision_app.py`／`A1Provisioner.exe`。** 自动读取无线网卡、选择家庭 Wi-Fi、发送 EasyLink 并验证设备，详见 [Windows 电脑免 App 配网完整步骤](docs/windows-wifi.md)。
 
+## 直接下载 Windows 配网软件
+
+无需安装 Python：[下载 EXE](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.1.0/A1Provisioner-Windows-x64.exe)，或 [下载便携 ZIP（含说明和许可）](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/download/v0.1.0/A1Provisioner-v0.1.0-Windows-x64.zip)。适用于 Windows 10／11 x64、有实体无线网卡的电脑。
+
+首次使用，先用 Windows 连接家庭 Wi-Fi 一次，再打开配网软件，选择 Wi-Fi 并点击“开始自动配网”；需要时按提示按住 A1 的 Wi-Fi 键约 1–2 秒。软件会检查 2.4 GHz 并验证设备身份。已联网的 A1 会跳过重复发送。
+
+[发行页及 SHA-256 校验文件](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v0.1.0)。公开 EXE 不预置个人网络配置、密码、IP 或 MAC。此附件是配网工具；开关、调速仍使用下文的控制台。
+
 ## 功能与兼容范围
 
 - 原厂 A1 `v1.47`：开机、关机、手动风速、日常／睡眠／强劲模式。
@@ -113,7 +121,7 @@ py -3.13 provision_app.py
 
 运行数据放在源码旁的 `runtime/`，打包后则放在 EXE 旁的 `data/`。其中可能包含设备 IP、MAC、协议报文头、状态、日志及本地证书，已在 `.gitignore` 中排除。修改网络参数会保存到本机，重新打开软件后生效。
 
-提交源码时不要强制加入这些目录、截图、配置文件或个人构建出来的 EXE。本仓库只分发通用源码和空配置样例，不包含预置设备信息。
+提交源码时不要强制加入这些目录、截图、配置文件或个人构建出来的 EXE。源码仓库仅保留通用代码和空配置样例；经过隐私检查的通用配网 EXE 作为 GitHub Release 附件发布，不包含预置设备信息。
 
 ## 测试与打包
 
