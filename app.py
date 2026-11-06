@@ -14,6 +14,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from backend import Controller, validate_settings
+from ir_remote import IRRemote, show_remote_window
 from setup_dialog import ask_settings
 
 BG = '#F3F6F3'
@@ -32,6 +33,8 @@ class App:
         self.editing = False
         self.busy = False
         self.log_window = None
+        self.remote_window = None
+        self.remote = IRRemote(controller)
         self.last_state = None
         root.title('A1 净化器控制台')
         root.geometry('1060x940')
@@ -121,12 +124,18 @@ class App:
         self.address = tk.Label(info, text='', fg=MUTED, bg=CARD, font=(FONT, 9))
         self.address.pack(anchor='w', pady=(4, 0))
         self.button(row, '连接设置', self.settings).pack(side='right', padx=(8, 0))
+        self.button(row, '红外遥控', self.show_remote).pack(side='right', padx=(8, 0))
         self.button(row, '查看记录', self.show_log).pack(side='right')
         footer = tk.Frame(container, bg=BG)
         footer.pack(fill='x', pady=(15, 0))
         tk.Label(footer, text='保留此软件运行，即可持续控制净化器', fg=MUTED, bg=BG, font=(FONT, 9)).pack(side='left')
         tk.Label(footer, text='原厂固件 · 无需拆机', fg=MUTED, bg=BG, font=(FONT, 9)).pack(side='right')
         root.protocol('WM_DELETE_WINDOW', self.close)
+        if self.remote.path.exists():
+            try:
+                self.remote.start()
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                self.controller.event(f'红外遥控服务未启动：{exc}')
         self.refresh()
 
     def card(self, parent):
@@ -257,6 +266,18 @@ class App:
         self.button(body, '修改设备与网络参数', edit).pack(fill='x', pady=(10, 0))
         tk.Label(body, text='恢复操作保留 Wi-Fi 名称与密码。', fg=MUTED, bg=BG, font=(FONT, 9)).pack(pady=12)
 
+    def show_remote(self):
+        if self.remote_window and self.remote_window.winfo_exists():
+            self.remote_window.lift()
+            return
+        try:
+            self.remote.start()
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            messagebox.showerror('红外遥控服务未启动', str(exc), parent=self.root)
+            return
+        sketch = Path(__file__).parent / 'firmware' / 'a1_ir_remote'
+        self.remote_window = show_remote_window(self.root, self.remote, sketch)
+
     def show_log(self):
         if self.log_window and self.log_window.winfo_exists():
             self.log_window.lift()
@@ -316,8 +337,11 @@ def main():
         root.destroy()
         return
     root.deiconify()
-    App(root, controller)
-    root.mainloop()
+    app = App(root, controller)
+    try:
+        root.mainloop()
+    finally:
+        app.remote.close()
 
 
 if __name__ == '__main__':

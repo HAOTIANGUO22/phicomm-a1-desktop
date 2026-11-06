@@ -16,3 +16,7 @@ Copyright and other upstream notices remain applicable. This repository uses GPL
 - [MXCHIP/mico-os](https://github.com/MXCHIP/mico-os), especially its configuration-server implementation, was consulted for the original device's HTTP network-configuration field names. The SDK and firmware are not included.
 
 The references explain interoperability with stock firmware; no vendor firmware binaries are distributed.
+
+## ESP32 build dependencies
+
+The ESP32 sketches use the [Espressif Arduino core](https://github.com/espressif/arduino-esp32), [Arduino-IRremote](https://github.com/Arduino-IRremote/Arduino-IRremote), [ArduinoJson](https://github.com/bblanchon/ArduinoJson), and [ESP_SSLClient](https://github.com/mobizt/ESP_SSLClient). The standalone sketch uses ESP_SSLClient's BearSSL for the A1's legacy local handshake. Arduino CLI installs these dependencies separately. Their source and license notices remain with their respective projects.

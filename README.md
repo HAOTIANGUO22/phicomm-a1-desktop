@@ -1,6 +1,13 @@
 # Phicomm A1 Desktop
 
-斐讯悟净 A1 空气净化器的 Windows 桌面控制软件。通过模拟原厂控制服务，使用原厂固件完成开关、调速及模式切换。
+斐讯悟净 A1 空气净化器的局域网控制项目，适配原厂固件 `v1.47`。可用 Windows 电脑控制，也可用 ESP32 提供手机网页和实体红外遥控。
+
+| 版本 | 适合谁 | 第一步 |
+| --- | --- | --- |
+| **1.0 · Windows 电脑端** | 没有 ESP32，想用电脑控制 A1；使用时电脑保持开机 | [1.0 发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v1.0.0) · [Windows 控制台说明](docs/windows-controller.md) |
+| **2.0 · ESP32 独立版** | 想关电脑后用手机控制，也可以接红外接收头，学习手持遥控器 | [2.0 发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v2.0.0) · **[从零开始的 ESP32 新手教程](docs/esp32-standalone.md)** |
+
+第一次用 **2.0**，按教程从下载安装工具开始，依次完成 **烧录 ESP32 → A1 联网 → 预留 IP → 手机配置 ESP32 → 连接 A1 → 测试开关和红外**。配置完毕后，ESP32 用 USB 电源独立供电，手机通过家庭 Wi-Fi 打开 ESP32 上的网页。运行时无需电脑或 Python。
 
 **原厂 App 无法使用、A1 还没联网时，可使用图形界面自动配网：`provision_app.py`／`A1Provisioner.exe`。** 自动读取无线网卡、选择家庭 Wi-Fi、发送 EasyLink 并验证设备，详见 [Windows 电脑免 App 配网完整步骤](docs/windows-wifi.md)。
 
@@ -26,6 +33,10 @@
 [发行页及 SHA-256 校验文件](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v0.1.0)。公开 EXE 不预置个人网络配置、密码、IP 或 MAC。此附件是配网工具；开关、调速仍使用下文的控制台。
 
 ## 功能与兼容范围
+
+也可以用 ESP32 作为 Windows 控制台的红外接收器。这条路线使用 `firmware/a1_ir_remote`，电脑需保持运行。详见 [电脑端红外桥接指南](docs/infrared-remote.md)。
+
+手机网页遥控版把网页和 A1 控制服务放在 ESP32，初次配置后电脑可关机。见 [ESP32 独立运行指南](docs/esp32-standalone.md)。
 
 - 原厂 A1 `v1.47`：开机、关机、手动风速、日常／睡眠／强劲模式。
 - 模式指令同时明确设置风速：睡眠 `30`、强劲 `85`，日常恢复上次手动设定。

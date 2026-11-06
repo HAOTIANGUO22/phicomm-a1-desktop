@@ -9,6 +9,12 @@ runtime/
 settings.json
 last-state.json
 network-restore.json
+firmware/a1_ir_remote/config.h
+firmware/a1_standalone/config.h
+firmware/a1_standalone/web_page.h
+firmware/a1_standalone/*.bin
+firmware/a1_standalone/*.elf
+firmware/a1_standalone/*.map
 test-token
 *.log
 *.key
