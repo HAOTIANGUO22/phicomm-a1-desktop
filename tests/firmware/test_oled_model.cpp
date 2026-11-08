@@ -16,8 +16,8 @@ int main() {
   state.mode = 2;
   state.speed = 56;
   lines = a1oled::screenLines(state);
-  assert(strcmp(lines.power, "等待连接") == 0);
-  assert(strcmp(lines.speed, "--") == 0);
+  assert(strcmp(lines.power, "上次开机") == 0);
+  assert(strcmp(lines.speed, "56") == 0);
   state.deviceConnected = true;
   state.hasReport = false;
   lines = a1oled::screenLines(state);
@@ -37,6 +37,6 @@ int main() {
   assert(strcmp(lines.speed, "--") == 0);
   state.wifiConnected = false;
   lines = a1oled::screenLines(state);
-  assert(strcmp(lines.power, "等待联网") == 0);
+  assert(strcmp(lines.power, "上次关机") == 0);
   assert(strcmp(lines.speed, "--") == 0);
 }

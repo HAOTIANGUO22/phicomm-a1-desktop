@@ -11,6 +11,7 @@
 #include "config.h"
 #include "legacy_tls.h"
 #include "protocol.h"
+#include "report_state.h"
 #include "web_page.h"
 #include "oled_display.h"
 
@@ -30,12 +31,13 @@ WiFiClient device;
 WiFiUDP dns, relay;
 A1Handshake tls;
 bool started = false, relayEnabled = false, headerReady = false;
-bool hasReport = false, pending = false, deviceWasConnected = false;
+bool pending = false, deviceWasConnected = false;
+a1::ReportedState reported;
 bool setupMode = false;
 uint8_t header[a1::headerSize];
 uint8_t receiveBuffer[1536];
 size_t received = 0;
-int mode = -1, speed = -1, manualSpeed = 56;
+int manualSpeed = 56;
 int expectedMode = -1, expectedSpeed = -1;
 uint32_t pendingAt = 0, lastIrAt = 0;
 uint32_t wifiStartedAt = 0, restartAt = 0;
@@ -44,6 +46,7 @@ String wifiName, wifiKey, a1Mac;
 int learnKey = -1;
 a1oled::Display oled;
 uint32_t screenUpdatedAt = 0;
+uint32_t connectionCount = 0, reportCount = 0, lastReportAt = 0;
 
 struct DnsRelay {
   IPAddress peer;
@@ -201,21 +204,24 @@ void onFrame() {
   }
   const int reportMode = reportValue(doc["data"]["mode"]);
   const int reportSpeed = reportValue(doc["data"]["speed"]);
-  if (!a1::validMode(reportMode) && (reportSpeed < 30 || reportSpeed > 85)) return;
-  if (a1::validMode(reportMode)) {
-    mode = reportMode;
+  const int previousMode = reported.mode(), previousSpeed = reported.speed();
+  if (!reported.receive(reportMode, reportSpeed)) return;
+  lastReportAt = millis();
+  ++reportCount;
+  if (reported.known() &&
+      (previousMode != reported.mode() || previousSpeed != reported.speed())) {
+    const auto snapshot = reported.snapshot(deviceMac);
+    if (saved.putBytes("last-report", &snapshot, sizeof(snapshot)) != sizeof(snapshot)) {
+      Serial.println("Last report could not be saved; keeping the in-memory state");
+    }
   }
-  if (reportSpeed >= 30 && reportSpeed <= 85) {
-    speed = reportSpeed;
-  }
-  hasReport = mode >= 0;
   if (reportMode == 2 && reportSpeed >= 30 && reportSpeed <= 85 && manualSpeed != reportSpeed) {
     manualSpeed = reportSpeed;
     saved.putInt("manual", manualSpeed);
   }
-  if (hasReport && (!pending || (mode == expectedMode && (expectedSpeed < 0 || speed == expectedSpeed)))) {
+  if (reported.known() && (!pending || reported.confirms(expectedMode, expectedSpeed))) {
     pending = false;
-    message = "运行状态已同步";
+    message = reported.cached() ? "已收到部分上报，保留上次状态" : "运行状态已同步";
   }
 }
 
@@ -238,9 +244,10 @@ void pollDevice() {
         Serial.println("A1 TCP keepalive setup failed; inspect connection detection during testing");
       }
       received = 0;
-      mode = speed = -1;
-      hasReport = pending = false;
-      message = "A1 已连接，等待设备状态";
+      reported.connectionLost();
+      pending = false;
+      ++connectionCount;
+      message = reported.known() ? "A1 已重连，保留上次上报状态" : "A1 已连接，等待设备状态";
     } else {
       incoming.stop();
     }
@@ -264,8 +271,9 @@ void pollDevice() {
   const bool connected = device.connected();
   if (!connected) {
     if (deviceWasConnected) {
-      hasReport = pending = false;
-      message = "A1 已断开，等待重连";
+      reported.connectionLost();
+      pending = false;
+      message = reported.known() ? "A1 已断开，上次状态已保留" : "A1 已断开，等待重连";
     }
   } else if (pending && millis() - pendingAt >= 10000) {
     pending = false;
@@ -294,7 +302,8 @@ bool control(int target, int requested = -1) {
   }
   expectedMode = target == 1 ? 2 : target;
   expectedSpeed = value;
-  pending = !hasReport || mode != expectedMode || (value >= 0 && speed != value);
+  pending = !reported.known() || reported.cached() || reported.mode() != expectedMode ||
+            (value >= 0 && reported.speed() != value);
   pendingAt = millis();
   message = pending ? "指令已发送，等待 A1 确认" : "设定与最近一次设备回报一致";
   return true;
@@ -354,7 +363,8 @@ bool configureDevice(bool restore) {
   }
   device.stop();
   deviceWasConnected = false;
-  pending = hasReport = false;
+  pending = false;
+  reported.connectionLost();
   message = restore ? "已提交恢复自动联网" : "已提交连接设置，等待 A1 重新联网";
   return true;
 }
@@ -399,8 +409,8 @@ void pollIr() {
     }
   } else if (matched >= 0 && matched < 5) {
     control(modes[matched]);
-  } else if (matched >= 5 && hasReport && mode > 0 && speed >= 30) {
-    control(2, constrain(speed + (matched == 5 ? 5 : -5), 30, 85));
+  } else if (matched >= 5 && reported.known() && reported.mode() > 0 && reported.speed() >= 30) {
+    control(2, constrain(reported.speed() + (matched == 5 ? 5 : -5), 30, 85));
   }
 }
 
@@ -421,13 +431,19 @@ void sendStatus(int status) {
   doc["connected"] = device.connected();
   doc["ready"] = device.connected() && headerReady;
   doc["pending"] = pending;
-  doc["mode"] = hasReport ? mode : -1;
-  doc["speed"] = hasReport ? speed : -1;
+  doc["mode"] = reported.known() ? reported.mode() : -1;
+  doc["speed"] = reported.known() ? reported.speed() : -1;
+  doc["hasReport"] = reported.known();
+  doc["stateCached"] = reported.cached() || (reported.known() && !device.connected());
+  doc["connectionCount"] = connectionCount;
+  doc["reportCount"] = reportCount;
+  doc["reportAgeSeconds"] = reportCount ? static_cast<int>((millis() - lastReportAt) / 1000) : -1;
+  doc["uptimeMs"] = millis();
   doc["manualSpeed"] = manualSpeed;
   doc["message"] = message;
   doc["irMessage"] = irMessage;
   doc["learning"] = learnKey < 0 ? "" : keys[learnKey];
-  doc["firmware"] = "3.1.0-dev";
+  doc["firmware"] = "3.1.1-dev";
   auto display = doc["oled"].to<JsonObject>();
   display["enabled"] = bool(OLED_ENABLED);
   display["detected"] = oled.ready();
@@ -603,6 +619,11 @@ void setup() {
   headerReady = saved.getBytesLength("header") == sizeof(header) &&
                 saved.getBytes("header", header, sizeof(header)) == sizeof(header) &&
                 memcmp(header + 17, deviceMac, sizeof(deviceMac)) == 0;
+  a1::ReportSnapshot snapshot;
+  if (saved.getBytesLength("last-report") == sizeof(snapshot) &&
+      saved.getBytes("last-report", &snapshot, sizeof(snapshot)) == sizeof(snapshot)) {
+    reported.restore(snapshot, deviceMac);
+  }
   WiFi.mode(WIFI_STA);
   WiFi.setAutoReconnect(true);
   if (!WiFi.config(espIp, gateway, mask, upstream)) {
@@ -629,7 +650,9 @@ void loop() {
       const bool dnsReady = dns.begin(53);
       relayEnabled = relay.begin(53053);
       const bool tlsReady = tls.begin(deviceIp, a1Mac.c_str(), TLS_CERT, sizeof(TLS_CERT), TLS_KEY, sizeof(TLS_KEY));
-      message = dnsReady && tcpReady && tlsReady ? "等待 A1 连接" : "A1 网络服务启动失败，请检查串口";
+      message = dnsReady && tcpReady && tlsReady
+          ? (reported.known() ? "等待 A1 连接，上次状态已保留" : "等待 A1 连接")
+          : "A1 网络服务启动失败，请检查串口";
       Serial.printf("Open http://%s:%u/ (DNS=%d TCP=%d TLS=%d)\n", WiFi.localIP().toString().c_str(),
                     webPort, dnsReady, tcpReady, tlsReady);
     }
@@ -638,8 +661,9 @@ void loop() {
     web.handleClient();
   } else if (started) {
     device.stop();
-    deviceWasConnected = hasReport = pending = false;
-    message = "Wi-Fi 已断开，等待重新连接";
+    deviceWasConnected = pending = false;
+    reported.connectionLost();
+    message = reported.known() ? "Wi-Fi 已断开，上次状态已保留" : "Wi-Fi 已断开，等待重新连接";
   } else if (wifiStartedAt && millis() - wifiStartedAt >= wifiConnectTimeout) {
     startSetup();
   }
@@ -654,10 +678,11 @@ void loop() {
     screen.setupMode = setupMode;
     screen.wifiConnected = wifiConnected;
     screen.deviceConnected = wifiConnected && device.connected();
-    screen.hasReport = screen.deviceConnected && hasReport;
+    screen.hasReport = reported.known();
+    screen.cached = reported.cached();
     screen.pending = pending;
-    screen.mode = mode;
-    screen.speed = speed;
+    screen.mode = reported.mode();
+    screen.speed = reported.speed();
     oled.update(screen, now);
   }
   delay(1);

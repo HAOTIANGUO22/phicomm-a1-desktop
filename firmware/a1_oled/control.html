@@ -96,7 +96,9 @@
   }
   function render() {
     const enabled = state && state.ready && !state.pending && !busy;
-    $('mode').textContent = state?.connected ? modeNames[state.mode] || '等待设备回报' : 'A1 未连接';
+    const knownMode = state && modeNames[state.mode];
+    $('mode').textContent = knownMode ? knownMode + (state.stateCached ? '（上次上报）' : '') :
+      state?.connected ? '等待设备回报' : 'A1 未连接';
     $('speed').textContent = state?.speed >= 0 ? state.speed : '—';
     $('message').textContent = state?.message || (busy ? '正在请求' : '正在等待 ESP32');
     $('irMessage').textContent = state?.irMessage || '';
