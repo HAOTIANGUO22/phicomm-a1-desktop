@@ -52,8 +52,9 @@ class Display {
     driver_.setFont(u8g2_font_wqy12_t_gb2312a);
     drawCentered(12, lines.connection);
     driver_.drawHLine(0, 15, 128);
-    drawCentered(42, lines.power, true);
-    drawCentered(61, lines.speed);
+    drawSpeed(lines.speed);
+    driver_.setFont(u8g2_font_wqy12_t_gb2312a);
+    drawCentered(62, lines.power);
     driver_.sendBuffer();
   }
 
@@ -65,11 +66,25 @@ class Display {
   uint8_t address_ = 0;
   uint32_t probeAt_ = 0;
 
-  void drawCentered(uint8_t baseline, const char *text, bool large = false) {
-    const uint16_t width = driver_.getUTF8Width(text) * (large ? 2 : 1);
+  void drawCentered(uint8_t baseline, const char *text) {
+    const uint16_t width = driver_.getUTF8Width(text);
     const uint8_t x = width < 128 ? (128 - width) / 2 : 0;
-    if (large) driver_.drawUTF8X2(x, baseline, text);
-    else driver_.drawUTF8(x, baseline, text);
+    driver_.drawUTF8(x, baseline, text);
+  }
+
+  void drawSpeed(const char *value) {
+    // The middle band starts below row 15; 34px digits fill it above the status.
+    const char *label = "设定风速";
+    driver_.setFont(u8g2_font_wqy12_t_gb2312a);
+    const uint16_t labelWidth = driver_.getUTF8Width(label);
+    driver_.setFont(u8g2_font_logisoso34_tn);
+    const uint16_t valueWidth = driver_.getStrWidth(value);
+    const uint16_t width = labelWidth + 6 + valueWidth;
+    const uint8_t x = width < 128 ? (128 - width) / 2 : 0;
+    driver_.setFont(u8g2_font_wqy12_t_gb2312a);
+    driver_.drawUTF8(x, 38, label);
+    driver_.setFont(u8g2_font_logisoso34_tn);
+    driver_.drawStr(x + labelWidth + 6, 50, value);
   }
 
   bool responds(uint8_t address) {

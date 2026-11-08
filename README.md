@@ -7,6 +7,7 @@
 | **1.0 · Windows 电脑端** | 没有 ESP32，想用电脑控制 A1；使用时电脑保持开机 | [1.0 发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v1.0.0) · [Windows 控制台说明](docs/windows-controller.md) |
 | **2.0 · ESP32 独立版** | 想关电脑后用手机控制，也可以接红外接收头，学习手持遥控器 | [2.0 发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v2.0.0) · **[从零开始的 ESP32 新手教程](docs/esp32-standalone.md)** |
 | **3.0 · OLED 预览版** | 在 ESP32 独立版上增加 OLED，显示连接、开关和风速；机械修订 2 已由用户确认可安装 | **[3.0 新手指南](docs/oled-3.0.md)** · [固件源码](firmware/a1_oled/) · [打印模型](hardware/README.md) |
+| **3.1 · OLED 风速大字版** | 中间突出显示大号风速数字，底部小字显示开关和等待状态，沿用 3.0 接线与外壳 | **[3.1 布局与升级说明](docs/oled-3.1.md)** · [固件源码](firmware/a1_oled/) |
 
 第一次用 **2.0**，按教程从下载安装工具开始，依次完成 **烧录 ESP32 → A1 联网 → 预留 IP → 手机配置 ESP32 → 连接 A1 → 测试开关和红外**。配置完毕后，ESP32 用 USB 电源独立供电，手机通过家庭 Wi-Fi 打开 ESP32 上的网页。运行时无需电脑或 Python。
 

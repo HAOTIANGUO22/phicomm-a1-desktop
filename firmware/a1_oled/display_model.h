@@ -21,11 +21,10 @@ struct Lines {
 
 inline Lines screenLines(const State &state) {
   Lines lines;
-  snprintf(lines.speed, sizeof(lines.speed), "风速 --");
+  snprintf(lines.speed, sizeof(lines.speed), "--");
   if (state.setupMode) {
     snprintf(lines.connection, sizeof(lines.connection), "配置网络");
     snprintf(lines.power, sizeof(lines.power), "待配网");
-    snprintf(lines.speed, sizeof(lines.speed), "请用手机配置");
     return lines;
   }
   if (!state.wifiConnected) {
@@ -46,7 +45,7 @@ inline Lines screenLines(const State &state) {
   }
   snprintf(lines.power, sizeof(lines.power), "%s", state.mode == 0 ? "已关机" : "已开机");
   if (state.speed >= 30 && state.speed <= 85) {
-    snprintf(lines.speed, sizeof(lines.speed), "设定风速 %d", state.speed);
+    snprintf(lines.speed, sizeof(lines.speed), "%d", state.speed);
   }
   return lines;
 }

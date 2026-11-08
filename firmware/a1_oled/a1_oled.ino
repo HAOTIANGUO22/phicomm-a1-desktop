@@ -427,7 +427,7 @@ void sendStatus(int status) {
   doc["message"] = message;
   doc["irMessage"] = irMessage;
   doc["learning"] = learnKey < 0 ? "" : keys[learnKey];
-  doc["firmware"] = "3.0.0-dev";
+  doc["firmware"] = "3.1.0-dev";
   auto display = doc["oled"].to<JsonObject>();
   display["enabled"] = bool(OLED_ENABLED);
   display["detected"] = oled.ready();
