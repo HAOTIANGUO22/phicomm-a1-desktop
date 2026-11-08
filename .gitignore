@@ -15,6 +15,11 @@ firmware/a1_standalone/web_page.h
 firmware/a1_standalone/*.bin
 firmware/a1_standalone/*.elf
 firmware/a1_standalone/*.map
+firmware/a1_oled/config.h
+firmware/a1_oled/web_page.h
+firmware/a1_oled/*.bin
+firmware/a1_oled/*.elf
+firmware/a1_oled/*.map
 test-token
 *.log
 *.key

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>斐讯 A1 · OLED 3.0</title>
+<style>
+  :root { font-family: system-ui, sans-serif; color: #19382f; background: #eff5f1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+  main { max-width: 540px; margin: auto; padding: 24px 16px 40px; }
+  header { padding: 0 4px; }
+  h1 { font-size: 30px; margin: 6px 0 18px; }
+  h2 { font-size: 16px; margin: 0 0 12px; }
+  section, details { background: white; border: 1px solid #dce8df; border-radius: 16px; padding: 16px; margin: 12px 0; }
+  p { line-height: 1.5; margin: 8px 0; }
+  .muted, small { color: #47685a; }
+  .status { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .reading { font-size: 38px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row { display: flex; gap: 8px; margin: 10px 0; }
+  .row > button { flex: 1; }
+  button { min-height: 44px; border: 0; border-radius: 9px; padding: 8px 10px; font: inherit; font-weight: 600; background: #e4f0e8; color: #184b35; }
+  button.primary, button[aria-pressed="true"] { background: #176345; color: white; }
+  button:disabled { opacity: .44; }
+  button:focus-visible, input:focus-visible, summary:focus-visible { outline: 3px solid #287b5a; outline-offset: 3px; }
+  input[type="range"] { width: 100%; margin: 8px 0; accent-color: #176345; min-height: 34px; }
+  summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 12px; }
+  .binding { display: grid; grid-template-columns: 4.8rem minmax(0, 1fr) auto; align-items: center; gap: 7px; margin: 6px 0; }
+  .binding small { overflow-wrap: anywhere; }
+</style>
+<main>
+  <header>
+    <small>局域网控制 · OLED 3.0 待实机测试</small>
+    <h1>斐讯 A1 遥控器</h1>
+  </header>
+  <section aria-labelledby="stateTitle">
+    <div class="status">
+      <div><h2 id="stateTitle">设备状态</h2><p id="mode" class="muted">连接 ESP32 中</p></div>
+      <div><div id="speed" class="reading">—</div><small>风速设定</small></div>
+    </div>
+    <p id="message" role="status"></p>
+    <p id="oledStatus" class="muted">正在读取 OLED 状态</p>
+  </section>
+  <section aria-label="净化器控制">
+    <div class="row">
+      <button class="primary" data-action="on" disabled>开机</button>
+      <button data-action="off" disabled>关机</button>
+    </div>
+    <div class="row">
+      <button data-action="daily" data-mode="2" disabled>日常</button>
+      <button data-action="sleep" data-mode="4" disabled>睡眠</button>
+      <button data-action="strong" data-mode="5" disabled>强劲</button>
+    </div>
+    <label for="slider">手动风速 <output id="value" for="slider">56</output></label>
+    <input type="range" id="slider" min="30" max="85" value="56" disabled>
+    <div class="row"><button data-action="speed" disabled>应用风速</button></div>
+  </section>
+  <details>
+    <summary>连接设置</summary>
+    <p class="muted">首次安装时，让已联网的 A1 改为连接这块 ESP32。</p>
+    <p><a href="/setup">修改 ESP32 和 A1 的网络参数</a></p>
+    <div class="row">
+      <button id="attach" disabled>连接到 ESP32</button>
+      <button id="restore" disabled>恢复自动联网</button>
+    </div>
+  </details>
+  <details>
+    <summary>实体遥控器学习</summary>
+    <div id="bindings"></div>
+    <p id="irMessage" class="muted" role="status"></p>
+    <button id="cancel" disabled>取消学习</button>
+  </details>
+</main>
+<script>
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const actions = [...document.querySelectorAll('[data-action]')];
+  const bindings = new Map();
+  const labels = {1:'1 · 开机', 0:'0 · 关机', 2:'2 · 日常', 3:'3 · 睡眠', 4:'4 · 强劲', up:'↑ · 风速', down:'↓ · 风速'};
+  const modeNames = {0:'已关机', 1:'运行中', 2:'日常模式', 4:'睡眠模式', 5:'强劲模式'};
+  let state = null, busy = false, editingSpeed = false, requestNumber = 0;
+  for (const key of ['1','0','2','3','4','up','down']) {
+    const row = document.createElement('div');
+    const title = document.createElement('span');
+    const code = document.createElement('small');
+    const button = document.createElement('button');
+    row.className = 'binding';
+    title.textContent = labels[key];
+    button.textContent = '学习';
+    button.setAttribute('aria-label', '学习 ' + labels[key]);
+    button.addEventListener('click', () => update('/api/learn', {key}));
+    row.append(title, code, button);
+    $('bindings').append(row);
+    bindings.set(key, {code, button});
+  }
+  function render() {
+    const enabled = state && state.ready && !state.pending && !busy;
+    $('mode').textContent = state?.connected ? modeNames[state.mode] || '等待设备回报' : 'A1 未连接';
+    $('speed').textContent = state?.speed >= 0 ? state.speed : '—';
+    $('message').textContent = state?.message || (busy ? '正在请求' : '正在等待 ESP32');
+    $('irMessage').textContent = state?.irMessage || '';
+    const oled = state?.oled;
+    $('oledStatus').textContent = !state ? '等待 ESP32' :
+      !oled?.enabled ? 'OLED 已停用' : oled.detected ?
+      'OLED 已检测 · I²C 0x' + oled.address.toString(16).toUpperCase() :
+      '未检测到 OLED，请检查 3V3、GND、SDA21 和 SCL22';
+    for (const button of actions) {
+      button.disabled = !enabled;
+      if (button.dataset.mode) button.setAttribute('aria-pressed', String(button.dataset.mode) === String(state?.mode));
+    }
+    $('slider').disabled = !enabled;
+    if (state && !editingSpeed) {
+      $('slider').value = state.speed >= 0 ? state.speed : state.manualSpeed;
+      $('value').value = $('slider').value;
+    }
+    for (const [key, binding] of bindings) {
+      binding.code.textContent = state?.learning === key ? '等待短按' : state?.keys[key] || '未学习';
+      binding.button.disabled = !state || busy;
+    }
+    for (const id of ['attach', 'restore', 'cancel']) $(id).disabled = !state || busy;
+  }
+  async function update(path = '/api/state', data) {
+    if (busy || document.visibilityState === 'hidden') return;
+    const ownRequest = ++requestNumber;
+    if (data) { busy = true; render(); }
+    let error = '';
+    try {
+      const response = await fetch(path, data ? {
+        method: 'POST', headers: {'X-A1-Control':'1'}, body: new URLSearchParams(data)
+      } : {cache: 'no-store'});
+      if (!response.ok && response.status !== 409) throw new Error('HTTP ' + response.status);
+      const next = await response.json();
+      if (ownRequest === requestNumber) state = next;
+    } catch {
+      if (ownRequest === requestNumber) {
+        state = null;
+        error = '无法访问 ESP32。请确认手机和 ESP32 在同一 Wi-Fi。';
+      }
+    } finally {
+      if (data) busy = false;
+      if (ownRequest === requestNumber) {
+        render();
+        if (error) $('message').textContent = error;
+      }
+    }
+  }
+  $('slider').addEventListener('input', () => {
+    editingSpeed = true;
+    $('value').value = $('slider').value;
+  });
+  for (const button of actions) button.addEventListener('click', () => {
+    const action = button.dataset.action;
+    const speed = $('slider').value;
+    editingSpeed = false;
+    update('/api/control', action === 'speed' ? {action, speed} : {action});
+  });
+  $('cancel').addEventListener('click', () => update('/api/learn', {key:''}));
+  $('attach').addEventListener('click', () => {
+    if (confirm('把这台 A1 的本地连接切换到 ESP32？')) update('/api/device', {action:'connect'});
+  });
+  $('restore').addEventListener('click', () => {
+    if (confirm('让 A1 恢复自动获取地址？遥控将暂停。')) update('/api/device', {action:'restore'});
+  });
+  render();
+  if (location.protocol === 'file:') {
+    $('message').textContent = '这是页面预览。遥控时请用浏览器打开 ESP32 的局域网地址。';
+  } else {
+    update();
+    setInterval(update, 1500);
+    document.addEventListener('visibilitychange', () => update());
+  }
+</script>
+</html>

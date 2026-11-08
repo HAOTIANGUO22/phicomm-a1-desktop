@@ -1,0 +1,121 @@
+{
+  "physical_fit_tested": true,
+  "physical_fit_result": "user_confirmed_installable",
+  "prior_physical_fit_result": "Both modules could not be seated; hole locations align.",
+  "test_envelopes_are_measured_hardware": false,
+  "base_file_unchanged": true,
+  "mechanical_revision": 2,
+  "lid": {
+    "extent_mm": [
+      84.0,
+      73.0,
+      10.9
+    ],
+    "watertight": true,
+    "connected": 1,
+    "degenerate_triangles": 0,
+    "sha256": "403db0ccefd168e3786f8861384e0412ee9139cb20ddfb901f86733b5c441354",
+    "volume_mm3": 20729.929
+  },
+  "base": {
+    "extent_mm": [
+      84.0,
+      73.0,
+      33.0
+    ],
+    "watertight": true,
+    "connected": 1,
+    "degenerate_triangles": 0,
+    "sha256": "5c72ec06a18816f4fcd5160540382d5e150fa4c27017d078848b66e0f2e24847",
+    "volume_mm3": 46025.0
+  },
+  "coupon": {
+    "extent_mm": [
+      42.0,
+      36.5,
+      5.9
+    ],
+    "watertight": true,
+    "connected": 1,
+    "degenerate_triangles": 0,
+    "sha256": "81b70912cc0a2a0768f633071154cd7605d72afe7e79229c650fd148d9096332",
+    "volume_mm3": 3077.187
+  },
+  "old_lid": {
+    "extent_mm": [
+      84.0,
+      73.0,
+      10.2
+    ],
+    "watertight": true,
+    "connected": 1,
+    "degenerate_triangles": 0,
+    "sha256": "7104b754c0df0fe4743e4d5cd5b6bc884cc5b4936d77d5c5a2d9695737d3f8c4",
+    "volume_mm3": 20488.191
+  },
+  "geometry_checks": {
+    "lid_base": "clear",
+    "reset": "clear",
+    "glass_new": "clear",
+    "glass_old": "old interference reproduced",
+    "ir_plug_new": "clear",
+    "ir_plug_old": "old interference reproduced",
+    "ir_pcb": "clear",
+    "oled_pcb": "clear",
+    "ir_sight": "clear"
+  },
+  "hole_locations_unchanged": true,
+  "date": "2026-11-07",
+  "user_feedback": "Both hole patterns align. OLED glass seating short by roughly 0.5 mm; IR right-angle pin/Dupont plug interferes.",
+  "changes": {
+    "oled_back_pocket_mm": [
+      27.2,
+      19.6,
+      1.0
+    ],
+    "front_window_unchanged": true,
+    "ir_support_height_mm": 8.1,
+    "ir_support_added_mm": 4.0,
+    "ir_locating_lip_wire_notch": true
+  },
+  "test_envelopes": {
+    "oled_glass_size_mm": [
+      26.2,
+      18.8,
+      3.6
+    ],
+    "ir_plug_size_mm": [
+      14,
+      8,
+      5
+    ],
+    "note": "Nominal clearance checks, not a full physical measurement."
+  },
+  "final_stl": {
+    "filename": "最终版-原M3底盒与3.0OLED盖.stl",
+    "sha256": "8e04321c3c208a2cd12c460454c0e00d9a6f39f4b127f3ca6c627594180edeb4",
+    "parts": 2,
+    "original_base_records_identical": true,
+    "size_mm": [
+      84.0,
+      154.0,
+      33.0
+    ],
+    "repository_file": "hardware/a1_oled_enclosure/a1-base-and-oled-lid-v3.stl"
+  },
+  "physical_fit_confirmation_date": "2026-11-09",
+  "physical_fit_confirmation_source": "User feedback in project conversation: 修正的盖子可以安装",
+  "physical_fit_scope": "Revised lid mechanical installation; OLED display and A1 synchronization remain unconfirmed by this feedback.",
+  "physical_fit_history": [
+    {
+      "date": "2026-11-07",
+      "result": "failed",
+      "details": "Both modules could not be seated; hole locations align."
+    },
+    {
+      "date": "2026-11-09",
+      "result": "user_confirmed_installable",
+      "mechanical_revision": 2
+    }
+  ]
+}

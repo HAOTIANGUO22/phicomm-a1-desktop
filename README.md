@@ -6,8 +6,13 @@
 | --- | --- | --- |
 | **1.0 · Windows 电脑端** | 没有 ESP32，想用电脑控制 A1；使用时电脑保持开机 | [1.0 发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v1.0.0) · [Windows 控制台说明](docs/windows-controller.md) |
 | **2.0 · ESP32 独立版** | 想关电脑后用手机控制，也可以接红外接收头，学习手持遥控器 | [2.0 发行页](https://github.com/HAOTIANGUO22/phicomm-a1-desktop/releases/tag/v2.0.0) · **[从零开始的 ESP32 新手教程](docs/esp32-standalone.md)** |
+| **3.0 · OLED 预览版** | 在 ESP32 独立版上增加 OLED，显示连接、开关和风速；机械修订 2 已由用户确认可安装 | **[3.0 新手指南](docs/oled-3.0.md)** · [固件源码](firmware/a1_oled/) · [打印模型](hardware/README.md) |
 
 第一次用 **2.0**，按教程从下载安装工具开始，依次完成 **烧录 ESP32 → A1 联网 → 预留 IP → 手机配置 ESP32 → 连接 A1 → 测试开关和红外**。配置完毕后，ESP32 用 USB 电源独立供电，手机通过家庭 Wi-Fi 打开 ESP32 上的网页。运行时无需电脑或 Python。
+
+**3.0 OLED 预览版**新增到独立的 `firmware/a1_oled` 目录，1.0 电脑端、2.0 独立版及原有发行页继续保留。3.0 的运行不依赖电脑或 Python，手机网页由 ESP32 提供；首次编译和烧录使用电脑。
+
+3.0 沿用原 M3 底盒，只更换 OLED 盖子。[下载当前修正版 STL（底盒＋OLED 盖，同板排版）](https://raw.githubusercontent.com/HAOTIANGUO22/phicomm-a1-desktop/main/hardware/a1_oled_enclosure/a1-base-and-oled-lid-v3.stl)，或进入 [模型说明](hardware/README.md) 下载单独盖子。**已有底盒不用重打。** 旧盖曾因玻璃与 L 形插头干涉而试装失败，当前机械修订 2 已增加玻璃避让和走线空间，并于 2026-11-09 得到用户“修正的盖子可以安装”的确认；OLED 驱动和 A1 联机仍保留待实测标记。接线、编译、配网、打印与验收步骤见 [3.0 新手指南](docs/oled-3.0.md)。
 
 **原厂 App 无法使用、A1 还没联网时，可使用图形界面自动配网：`provision_app.py`／`A1Provisioner.exe`。** 自动读取无线网卡、选择家庭 Wi-Fi、发送 EasyLink 并验证设备，详见 [Windows 电脑免 App 配网完整步骤](docs/windows-wifi.md)。
 

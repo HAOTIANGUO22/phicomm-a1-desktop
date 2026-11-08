@@ -1,0 +1,6 @@
+e3b99a6e746726ffef565f8f170c3c9d56da93a57f5b31650968d3b6d516a741  a1_ir_lid_corrected/a1-lid-v1-corrected.stl
+8e04321c3c208a2cd12c460454c0e00d9a6f39f4b127f3ca6c627594180edeb4  a1_oled_enclosure/a1-base-and-oled-lid-v3.stl
+5c72ec06a18816f4fcd5160540382d5e150fa4c27017d078848b66e0f2e24847  a1_oled_enclosure/a1-base-m3.stl
+690e84120cc5dc050efc227bcc161021b0b00ff98c4772baabccd5d22dedf155  a1_oled_enclosure/a1-fit-check-m3.stl
+403db0ccefd168e3786f8861384e0412ee9139cb20ddfb901f86733b5c441354  a1_oled_enclosure/a1-lid-oled-v3.stl
+81b70912cc0a2a0768f633071154cd7605d72afe7e79229c650fd148d9096332  a1_oled_enclosure/a1-oled-fit-check.stl
