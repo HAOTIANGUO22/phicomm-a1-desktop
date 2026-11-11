@@ -397,6 +397,7 @@ void pollIr() {
       break;
     }
   }
+  if (learnKey >= 0 || matched >= 0) oled.noteActivity(now);
   if (learnKey >= 0) {
     if (matched >= 0 && matched != learnKey) {
       irMessage = "这枚按键已绑定，请短按当前要学习的键";
@@ -443,11 +444,13 @@ void sendStatus(int status) {
   doc["message"] = message;
   doc["irMessage"] = irMessage;
   doc["learning"] = learnKey < 0 ? "" : keys[learnKey];
-  doc["firmware"] = "3.1.1-dev";
+  doc["firmware"] = "3.2.0-dev";
   auto display = doc["oled"].to<JsonObject>();
   display["enabled"] = bool(OLED_ENABLED);
   display["detected"] = oled.ready();
   display["address"] = oled.address();
+  display["awake"] = oled.awake();
+  display["idleSeconds"] = OLED_IDLE_TIMEOUT_MS / 1000;
   auto bindings = doc["keys"].to<JsonObject>();
   for (int i = 0; i < 7; ++i) {
     bindings[keys[i]] = irCodes[i];
@@ -540,6 +543,11 @@ void startWeb() {
     restartAt = millis() + 1200;
   });
   web.on("/api/state", HTTP_GET, [] { if (authorize()) sendStatus(200); });
+  web.on("/api/display/wake", HTTP_POST, [] {
+    if (!authorize(true)) return;
+    oled.noteActivity(millis());
+    sendStatus(200);
+  });
   web.on("/api/control", HTTP_POST, [] {
     if (!authorize(true)) return;
     const String action = web.arg("action");
@@ -557,6 +565,7 @@ void startWeb() {
       web.send(400);
       return;
     }
+    oled.noteActivity(millis());
     sendStatus(control(target, value) ? 202 : 409);
   });
   web.on("/api/device", HTTP_POST, [] {
@@ -570,6 +579,7 @@ void startWeb() {
       web.send(400);
       return;
     }
+    oled.noteActivity(millis());
     sendStatus(configureDevice(action == "restore") ? 202 : 409);
   });
   web.on("/api/learn", HTTP_POST, [] {
@@ -579,6 +589,7 @@ void startWeb() {
     for (int i = 0; i < 7; ++i) {
       if (button == keys[i]) learnKey = i;
     }
+    if (learnKey >= 0 || button.isEmpty()) oled.noteActivity(millis());
     irMessage = learnKey < 0 ? "已退出学习" : "请对准红外接收头短按对应键";
     sendStatus(200);
   });
@@ -671,7 +682,7 @@ void loop() {
     pollIr();
   }
   const uint32_t now = millis();
-  if (now - screenUpdatedAt >= 1000) {
+  if (oled.needsUpdate(now) || now - screenUpdatedAt >= 1000) {
     screenUpdatedAt = now;
     const bool wifiConnected = WiFi.status() == WL_CONNECTED;
     a1oled::State screen;

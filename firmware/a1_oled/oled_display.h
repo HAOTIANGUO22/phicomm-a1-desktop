@@ -27,14 +27,26 @@ class Display {
  public:
   void begin() {
     if (!OLED_ENABLED) return;
+    noteActivity(millis());
     Wire.begin(OLED_SDA_PIN, OLED_SCL_PIN, OLED_I2C_CLOCK);
     Wire.setTimeOut(12);
     connect();
     probeAt_ = millis();
   }
 
+  void noteActivity(uint32_t now) {
+    lastActivity_ = now;
+    active_ = true;
+  }
+
+  bool needsUpdate(uint32_t now) const {
+    return ready() && awake_ != withinIdleTimeout(now);
+  }
+
   void update(const State &state, uint32_t now) {
     if (!OLED_ENABLED) return;
+    // Latch sleep until the next user action, including after millis() wraps.
+    active_ = withinIdleTimeout(now);
     if (!address_) {
       if (now - probeAt_ < 10000) return;
       probeAt_ = now;
@@ -43,8 +55,16 @@ class Display {
     }
     if (!responds(address_)) {
       address_ = 0;
+      awake_ = false;
       probeAt_ = now;
       Serial.println("OLED disconnected; network and IR control continue");
+      return;
+    }
+    if (!active_) {
+      if (awake_) {
+        driver_.setPowerSave(1);
+        awake_ = false;
+      }
       return;
     }
     const Lines lines = screenLines(state);
@@ -56,15 +76,27 @@ class Display {
     driver_.setFont(u8g2_font_wqy12_t_gb2312a);
     drawCentered(62, lines.power);
     driver_.sendBuffer();
+    if (!awake_) {
+      driver_.setPowerSave(0);
+      awake_ = true;
+    }
   }
 
   bool ready() const { return address_ != 0; }
+  bool awake() const { return awake_; }
   uint8_t address() const { return address_; }
 
  private:
   DisplayDriver driver_{A1_OLED_ROTATION, U8X8_PIN_NONE, OLED_SCL_PIN, OLED_SDA_PIN};
   uint8_t address_ = 0;
   uint32_t probeAt_ = 0;
+  uint32_t lastActivity_ = 0;
+  bool active_ = false;
+  bool awake_ = false;
+
+  bool withinIdleTimeout(uint32_t now) const {
+    return active_ && now - lastActivity_ < OLED_IDLE_TIMEOUT_MS;
+  }
 
   void drawCentered(uint8_t baseline, const char *text) {
     const uint16_t width = driver_.getUTF8Width(text);
@@ -99,7 +131,8 @@ class Display {
       if (!responds(address)) continue;
       driver_.setI2CAddress(address << 1);
       driver_.setBusClock(OLED_I2C_CLOCK);
-      driver_.begin();
+      driver_.initDisplay();
+      driver_.setPowerSave(1);
       Wire.setTimeOut(12);
       driver_.setContrast(110);
       address_ = address;

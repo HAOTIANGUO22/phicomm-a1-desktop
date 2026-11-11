@@ -4,6 +4,7 @@
 part = "assembly"; // [assembly, exploded, base, lid, fit, oled_fit]
 
 /* [Case] */
+with_oled = true;        // Set false for a solid lid without the OLED module.
 case_length = 84;
 case_width = 73;
 base_height = 33;        // Original M3 base: do not change or reprint it.
@@ -269,7 +270,7 @@ module lid_shape() {
             translate([ir_x,ir_center.y,lid_thickness-eps])
                 linear_extrude(height=ir_support_height+eps)
                     centered_rounded([5.4,22],1.7);
-            oled_supports();
+            if (with_oled) oled_supports();
         }
         for (q=screw_points) {
             translate([q.x,q.y,-eps]) cylinder(d=lid_screw_clearance,h=lid_inner_z+lip_height+2*eps);
@@ -277,10 +278,12 @@ module lid_shape() {
             translate([q.x,q.y,-eps]) cylinder(d1=6.4,d2=lid_screw_clearance,h=1.4);
         }
         ir_opening();
-        oled_opening();
-        oled_glass_relief();
+        if (with_oled) {
+            oled_opening();
+            oled_glass_relief();
+            oled_fasteners();
+        }
         ir_wire_relief();
-        oled_fasteners();
         for (dy=[-ir_hole_pitch/2,ir_hole_pitch/2])
             translate([ir_x,ir_center.y+dy,lid_thickness+0.2])
                 rotate([0,0,90])
@@ -290,7 +293,7 @@ module lid_shape() {
             centered_rounded(reset_opening,1.7);
         lid_vents();
         if (engrave_labels) {
-            engraving("A1 OLED 3.0",[32,9],3.2);
+            engraving(with_oled ? "A1 OLED 3.0" : "A1",[32,9],3.2);
             engraving("RESET",[p.x,p.y+7.0],2.7);
         }
     }
@@ -378,14 +381,14 @@ else if (part=="oled_fit") oled_fit_fixture();
 else if (part=="assembly") {
     color("#D9E3DD") base();
     color("#3C7772") installed_lid();
-    oled_demo();
+    if (with_oled) oled_demo();
     ir_demo();
 }
 else if (part=="exploded") {
     color("#D9E3DD") base();
     color("#3C7772") installed_lid(22);
     demo_hardware();
-    oled_demo(22);
+    if (with_oled) oled_demo(22);
     ir_demo(22);
 }
 else assert(false,str("Unknown part: ",part));

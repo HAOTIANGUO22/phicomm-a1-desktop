@@ -9,3 +9,4 @@
 #define OLED_FORCE_ADDRESS 0  // 0 scans 0x3C and 0x3D. Use a 7-bit address here.
 #define OLED_ROTATE_180 0
 #define OLED_USE_SH1106 0      // Default is SSD1306, inferred from the photos.
+#define OLED_IDLE_TIMEOUT_MS 30000UL

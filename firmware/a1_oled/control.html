@@ -3,7 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
-<title>斐讯 A1 · OLED 3.1</title>
+<title>斐讯 A1 · OLED 3.2</title>
 <style>
   :root { font-family: system-ui, sans-serif; color: #19382f; background: #eff5f1; }
   * { box-sizing: border-box; }
@@ -31,7 +31,7 @@
 </style>
 <main>
   <header>
-    <small>局域网控制 · OLED 3.1</small>
+    <small>局域网控制 · OLED 3.2</small>
     <h1>斐讯 A1 遥控器</h1>
   </header>
   <section aria-labelledby="stateTitle">
@@ -41,6 +41,7 @@
     </div>
     <p id="message" role="status"></p>
     <p id="oledStatus" class="muted">正在读取 OLED 状态</p>
+    <button id="wakeDisplay" disabled>唤醒屏幕</button>
   </section>
   <section aria-label="净化器控制">
     <div class="row">
@@ -105,8 +106,9 @@
     const oled = state?.oled;
     $('oledStatus').textContent = !state ? '等待 ESP32' :
       !oled?.enabled ? 'OLED 已停用' : oled.detected ?
-      'OLED 已检测 · I²C 0x' + oled.address.toString(16).toUpperCase() :
+      (oled.awake ? 'OLED 亮屏' : 'OLED 已熄屏') + ' · ' + oled.idleSeconds + ' 秒无操作自动熄屏' :
       '未检测到 OLED，请检查 3V3、GND、SDA21 和 SCL22';
+    $('wakeDisplay').disabled = !oled?.detected || busy;
     for (const button of actions) {
       button.disabled = !enabled;
       if (button.dataset.mode) button.setAttribute('aria-pressed', String(button.dataset.mode) === String(state?.mode));
@@ -157,6 +159,7 @@
     editingSpeed = false;
     update('/api/control', action === 'speed' ? {action, speed} : {action});
   });
+  $('wakeDisplay').addEventListener('click', () => update('/api/display/wake', {}));
   $('cancel').addEventListener('click', () => update('/api/learn', {key:''}));
   $('attach').addEventListener('click', () => {
     if (confirm('把这台 A1 的本地连接切换到 ESP32？')) update('/api/device', {action:'connect'});
